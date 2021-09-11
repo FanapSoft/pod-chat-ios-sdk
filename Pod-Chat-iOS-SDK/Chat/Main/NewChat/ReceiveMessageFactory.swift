@@ -225,6 +225,9 @@ class ReceiveMessageFactory{
             case .CHANGE_THREAD_TYPE:
                 ChangeThreadTypeResposneHandler.handle(chatMessage, asyncMessage)
                 break
+            case .SEARCH_INSIDE_THREADS:
+                SearchInsideThreadsResponseHandler.handle(chatMessage,asyncMessage)
+                break
 			case .ERROR:
 				ErrorResponseHandler.handle(chatMessage , asyncMessage)
 				break

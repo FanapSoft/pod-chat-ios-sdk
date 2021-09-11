@@ -38,7 +38,7 @@ extension CMMessage{
 					   replyInfo:       replyInfo?.getCodable())
     }
     
-    public class func convertMesageToCM(message:Message ,entity:CMMessage? = nil , threadId:Int?, conversation:CMConversation?) -> CMMessage{
+    public class func convertMesageToCM(message:Message ,entity:CMMessage? = nil) -> CMMessage{
 		
         let model = entity ?? CMMessage()
 		model.deletable                      = message.deletable as NSNumber?
@@ -58,22 +58,25 @@ extension CMMessage{
 		model.threadId                       = message.threadId as NSNumber?
 		model.time                           = message.time as NSNumber?
 		model.uniqueId                       = message.uniqueId
-        if let conversation = conversation{
-            model.conversation               = conversation // prevent write nil when pinMessage or other method need to update or insert beacause it nil
+        if let conversation = message.conversation{
+            // prevent write nil when pinMessage or other method need to update or insert beacause it nil
+            CMConversation.insertOrUpdate(conversations: [conversation]){ conversationEntity in
+                model.conversation = conversationEntity
+            }
         }
         
-        if let participant = message.participant{
+        if let participant = message.participant ,let threadId = message.conversation?.id{
             CMParticipant.insertOrUpdate(participant: participant, threadId: threadId){ resultEntity in
                 model.participant = resultEntity
             }
         }
-        if let replyInfo = message.replyInfo{
+        if let replyInfo = message.replyInfo, let threadId = message.conversation?.id{
             CMReplyInfo.insertOrUpdate(replyInfo: replyInfo, messageId: message.id, threadId: threadId){ resultEntity in
                 model.replyInfo = resultEntity
             }
         }
         
-        if let forwardInfo = message.forwardInfo{
+        if let forwardInfo = message.forwardInfo, let threadId = message.conversation?.id{
             CMForwardInfo.insertOrUpdate(forwardInfo: forwardInfo, messageId: message.id, threadId: threadId){ resultEntity in
                 model.forwardInfo = resultEntity
             }
@@ -82,27 +85,28 @@ extension CMMessage{
         return model
     }
     
-    public class func insertOrUpdate(message:Message , threadId:Int? , resultEntity:((CMMessage)->())? = nil){
+    public class func insertOrUpdate(message:Message , resultEntity:((CMMessage)->())? = nil){
         
-		if let id = message.id, let findedEntity = CMMessage.crud.find(keyWithFromat: "id == %i", value: id){
-            let cmMessage = convertMesageToCM(message: message, entity: findedEntity , threadId: threadId, conversation: nil)
+        if let id = message.id, let findedEntity = CMMessage.crud.find(keyWithFromat: "id == %i", value: id){
+            let cmMessage = convertMesageToCM(message: message, entity: findedEntity)
             resultEntity?(cmMessage)
         }else{
 			CMMessage.crud.insert { cmMessage in
-                let cmMessage = convertMesageToCM(message: message, entity: cmMessage, threadId: threadId, conversation: nil)
+                let cmMessage = convertMesageToCM(message: message, entity: cmMessage)
                 resultEntity?(cmMessage)
             }
         }
     }
     
     public class func insertOrUpdate(message:Message , conversation:CMConversation? , resultEntity:((CMMessage)->())? = nil){
-        guard let threadId = conversation?.id as? Int else {return}
+        guard let conversation = conversation else {return}
+        message.conversation = CMConversation.getCodable(conversation)()
         if let id = message.id, let findedEntity = CMMessage.crud.find(keyWithFromat: "id == %i", value: id){
-            let cmMessage = convertMesageToCM(message: message, entity: findedEntity , threadId: threadId , conversation: conversation)
+            let cmMessage = convertMesageToCM(message: message, entity: findedEntity)
             resultEntity?(cmMessage)
         }else{
             CMMessage.crud.insert { cmMessage in
-               let cmMessage = convertMesageToCM(message: message, entity: cmMessage, threadId: threadId, conversation: conversation)
+               let cmMessage = convertMesageToCM(message: message, entity: cmMessage)
                 resultEntity?(cmMessage)
             }
         }

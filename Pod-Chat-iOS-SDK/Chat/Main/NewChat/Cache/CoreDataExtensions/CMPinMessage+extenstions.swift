@@ -53,7 +53,8 @@ extension CMPinMessage{
         }
         //3-set true Message Model
         if let message = CMMessage.crud.find(keyWithFromat: "id == %id", value: pinMessage.messageId)?.getCodable(){
-            CMMessage.insertOrUpdate(message: message, threadId: threadId){ resultEntity in
+            message.conversation = Conversation(id: threadId)
+            CMMessage.insertOrUpdate(message: message){ resultEntity in
                 resultEntity.pinned = true
             }
         }
@@ -66,7 +67,8 @@ extension CMPinMessage{
             thread?.pinMessage  = nil
         }
         if let message = CMMessage.crud.find(keyWithFromat: "id == %id", value: pinMessage.messageId)?.getCodable(){
-            CMMessage.insertOrUpdate(message: message, threadId: threadId){  resultEntity in
+            message.conversation = Conversation(id:threadId)
+            CMMessage.insertOrUpdate(message: message){  resultEntity in
                 resultEntity.pinned = false
             }
         }

@@ -71,6 +71,7 @@ public enum NewChatMessageVOTypes :Int , Codable {
     case STATUS_PING                       = 101
     case CLOSE_THREAD                      = 102
     case REMOVE_BOT_COMMANDS               = 104
+    case SEARCH_INSIDE_THREADS             = 105
     case REGISTER_ASSISTANT                = 107
     case DEACTICVE_ASSISTANT               = 108
     case GET_ASSISTANTS                    = 109

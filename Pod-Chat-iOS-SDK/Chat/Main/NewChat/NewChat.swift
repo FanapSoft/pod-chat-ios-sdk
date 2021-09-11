@@ -426,6 +426,11 @@ public extension Chat {
                                         uniqueIdResult)
     }
     
+    //Test Status: Main ❌ - Integeration: ✅ - Sandbox: ❌
+    func searchInsideThreads(_ request:SearchIndsideThreadsRequest, completion:@escaping PaginationCompletionType<[Message]> ,uniqueIdResult: UniqueIdResultType = nil){
+        SearchInsideThreadsRequestHandler.handle(request, self, completion, uniqueIdResult )
+    }
+    
     //Test Status: Main ✅ - Integeration: ✅
     func getHashtagList(_ request:NewGetHistoryRequest ,
                     completion:@escaping PaginationCompletionType<[Message]> ,
